@@ -2,7 +2,18 @@ using UnityEngine;
 
 public class AlgorithmsUtils
 {
-    
+    /// <summary>
+    /// min inclusive, max exclusive
+    /// </summary>
+    /// <param name="rect"></param>
+    /// <param name="point"></param>
+    /// <returns></returns>
+    public static bool RectIntContains(RectInt rect, Vector2 point)
+    {
+        return point.x >= rect.xMin && point.x < rect.xMax &&
+               point.y >= rect.yMin && point.y < rect.yMax;
+    }
+
     public static bool Intersects(RectInt a, RectInt b)
     {
         return a.xMin < b.xMax &&

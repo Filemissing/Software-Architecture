@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -9,24 +10,21 @@ public class PlayerController : MonoBehaviour
     public float speed;
     public LayerMask walkableMask;
     public float proximityMargin;
-    new bool enabled = false;
 
     Vector3 targetPosition;
     Vector3[] currentPath;
     int currentStep;
     Rigidbody rb;
-    public NavMeshAgent agent;
+
     public void Enable()
     {
         rb = GetComponent<Rigidbody>();
         Vector2 pos = DungeonGenerator.instance.graph.GetNodes()[0].center;
-        transform.position = new Vector3(pos.x, 1, pos.y);
+        transform.position = new Vector3(pos.x, .4f, pos.y);
         targetPosition = transform.position;
         rb.isKinematic = false;
         enabled = true;
-        agent = gameObject.AddComponent<NavMeshAgent>();
     }
-
     public void Disable()
     {
         transform.position = Vector3.zero;
@@ -35,37 +33,11 @@ public class PlayerController : MonoBehaviour
         currentStep = 0;
         rb.isKinematic = true;
         enabled = false;
-        Destroy(agent);
     }
 
-    void Update()
+    void Move(Vector3 position)
     {
-        if (!enabled) return;
-
-        rb.isKinematic = !DungeonGenerator.instance.useNavMesh;
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, Mathf.Infinity, walkableMask))
-            {
-                Debug.Log($"hit {hit.point}");
-                targetPosition = hit.point;
-
-                if (DungeonGenerator.instance.useNavMesh)
-                {
-                    agent.SetDestination(targetPosition);
-                }
-                else
-                {
-                    if (transform.position != targetPosition)
-                    {
-                        Vector3[] path = FindShortestPath(targetPosition);
-                        currentPath = path;
-                        currentStep = 0;
-                    }
-                }
-            }
-        }
+        currentPath = FindShortestPath(position);
     }
 
     private void FixedUpdate()

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using Unity.Mathematics;
 using NaughtyAttributes;
 using Random = Unity.Mathematics.Random;
 using System.Collections;
@@ -48,8 +47,10 @@ public class DungeonGenerator : MonoBehaviour
     public List<Door> doors = new();
 
     [Header("Assets")]
-    public GameObject floor;
+    public GameObject floorPrefab;
     public List<GameObject> wallPrefabs = new();
+    public GameObject doorHighlightPrefab;
+    List<RoomManager> roomManagers = new List<RoomManager>();
 
     GameObject assetParent;
 
@@ -60,8 +61,6 @@ public class DungeonGenerator : MonoBehaviour
 
     [HorizontalLine]
     [Header("Navigation")]
-    public bool useNavMesh = false;
-    public NavMeshSurface navmesh;
     public Graph<Vector3> navigationGraph = new();
 
     [HorizontalLine]
@@ -76,7 +75,6 @@ public class DungeonGenerator : MonoBehaviour
         new Vector2Int(0, 1),
         new Vector2Int(0, -1)
     };
-
     Vector2Int[] diagonalDirections = new Vector2Int[4]
     {
         new Vector2Int(1, 1),
@@ -109,8 +107,9 @@ public class DungeonGenerator : MonoBehaviour
 
         if (keyPressContinue) yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
 
-        if (useNavMesh) navmesh.BuildNavMesh();
-        else yield return StartCoroutine(CreateNavigationGraph());
+        yield return StartCoroutine(CreateNavigationGraph());
+
+        HideAllRooms();
 
         OnGenerationDone.Invoke();
     }
@@ -259,7 +258,7 @@ public class DungeonGenerator : MonoBehaviour
     }
 
     // Complexity O(n^2) where n is the number of rooms
-    [Obsolete("deprecated, now included in room creation")] IEnumerator GenerateGraph()
+    [Obsolete("deprecated, included in room creation")] IEnumerator GenerateGraph()
     {
         foreach(RectInt room1 in generatedRooms)
         {
@@ -451,99 +450,106 @@ public class DungeonGenerator : MonoBehaviour
     }
 
     // Complexity O(n) where n is the area of the entire dungeon
-    List<(Vector2Int, Transform)> wallMap = new();
     IEnumerator SpawnAssets()
     {
         // create parent
         assetParent = new GameObject("Dungeon");
+
+        Dictionary<RoomManager, List<Vector2>> perRoomFloorMap = new(); 
+        Dictionary<Vector2, GameObject> globalFloorMap = new(); // contains spawned object by position in order to share references between different rooms
 
         int roomIndex = 0;
         foreach (RectInt room in graph.GetNodes())
         {
             Transform roomParent = new GameObject($"Room{roomIndex}").transform;
             roomParent.parent = assetParent.transform;
+            RoomManager roomManager = roomParent.AddComponent<RoomManager>();
+            roomManager.rect = room;
 
             Transform floorParent = new GameObject("Floor").transform;
             floorParent.parent = roomParent.transform;
+            roomManager.floorParent = floorParent;
 
             Transform wallParent = new GameObject("Walls").transform;
             wallParent.parent = roomParent.transform;
+            roomManager.wallParent = wallParent;
 
-            // spawn floor
+            perRoomFloorMap.Add(roomManager, new());
+            roomManagers.Add(roomManager);
+
+            // Map Floors
             foreach (Vector2Int position in room.allPositionsWithin)
             {
-                Transform floorInstance = Instantiate(floor, new Vector3(position.x, 0, position.y), quaternion.identity, floorParent.transform).transform;
-            }
-
-            // map walls
-            for (int y = room.yMin; y < room.yMax; y++)
-            {
-                for (int x = room.xMin; x < room.xMax; x++)
-                {
-                    Vector2Int position = new Vector2Int(x, y);
-
-                    Color debugColor = Color.red;
-
-                    // spawn walls
-                    if (position.x == room.xMin || position.x == room.xMax - 1 || position.y == room.yMin || position.y == room.yMax - 1) // on the edge of the room
-                    {
-                        wallMap.Add((position, wallParent));
-                        debugColor = Color.green;
-                    }
-
-                    //DebugExtension.DebugPoint(new Vector3(position.x, 0, position.y), debugColor, 1f, waitTime);
-
-                    if (doAnimation) yield return new WaitForSeconds(waitTime);
-                }
+                perRoomFloorMap[roomManager].Add(new Vector2(position.x + .5f, position.y + .5f));
             }
 
             roomIndex++;
         }
 
-        // remove walls where doors are
-        foreach (Door door in doors)
+        // spawn floors and walls
+        foreach (KeyValuePair<RoomManager, List<Vector2>> kvp in perRoomFloorMap)
         {
-            foreach (Vector2Int position in door.rect.allPositionsWithin)
+            RoomManager roomManager = kvp.Key;
+
+            foreach (Vector2 position in kvp.Value)
             {
-                wallMap.RemoveAll(item => item.Item1 == position);
+                if (!globalFloorMap.ContainsKey(position)) // instantiate only non-duplicate floors
+                    globalFloorMap.Add(position, Instantiate(floorPrefab, new Vector3(position.x, 0, position.y), Quaternion.identity, kvp.Key.floorParent));
+
+                roomManager.floors.Add(globalFloorMap[position]); // add reference to roomManager
+
+                if(doAnimation) yield return new WaitForSeconds(waitTime);
             }
-        }
 
-        // spawn walls
-        for (int y = 0; y < size.y - 1; y++)
-        {
-            for (int x = 0; x < size.x - 1; x++)
+            RectInt roomBounds = roomManager.rect;
+
+            foreach (Vector2Int position in roomBounds.allPositionsWithin)
             {
-                Vector2Int position = new Vector2Int(x, y);
+                if (doors.Any(door => door.rect.Contains(position))) continue;
 
-                if (graph.GetNodes().Find((room) => room.Contains(position)) == null) continue; // position does not lie in any rooms, should remove outside walls
+                Vector2 Apos = position + new Vector2(-.5f, .5f);
+                Vector2 Bpos = position + new Vector2(.5f, .5f);
+                Vector2 Cpos = position + new Vector2(-.5f, -.5f);
+                Vector2 Dpos = position + new Vector2(.5f, -.5f);
 
-                Vector2Int Apos = new(position.x, position.y + 1);      // top-left
-                Vector2Int Bpos = new(position.x + 1, position.y + 1);  // top-right
-                Vector2Int Cpos = new(position.x, position.y);          // bottom-left
-                Vector2Int Dpos = new(position.x + 1, position.y);      // bottom-right
+                // invalidate all top and right positions to treat them as empty
+                bool A = kvp.Value.Contains(Apos) && Apos.x < roomBounds.xMax - 1 && Apos.y < roomBounds.yMax - 1;
+                bool B = kvp.Value.Contains(Bpos) && Bpos.x < roomBounds.xMax - 1 && Bpos.y < roomBounds.yMax - 1;
+                bool C = kvp.Value.Contains(Cpos) && Cpos.x < roomBounds.xMax - 1 && Cpos.y < roomBounds.yMax - 1;
+                bool D = kvp.Value.Contains(Dpos) && Dpos.x < roomBounds.xMax - 1 && Dpos.y < roomBounds.yMax - 1;
 
-                // check which corners are floor tiles
-                bool A = wallMap.Find((v) => v.Item1 == Apos) != default;
-                bool B = wallMap.Find((v) => v.Item1 == Bpos) != default;
-                bool C = wallMap.Find((v) => v.Item1 == Cpos) != default;
-                bool D = wallMap.Find((v) => v.Item1 == Dpos) != default;
+                int index = (A ? 8 : 0) | (B ? 4 : 0) | (C ? 2 : 0) | (D ? 1 : 0);
 
-                // build 4-bit mask (A,B,C,D → bits 8,4,2,1)
-                int mask = (A ? 8 : 0) | (B ? 4 : 0) | (C ? 2 : 0) | (D ? 1 : 0);
+                if (wallPrefabs[index] == null) 
+                {
+                    continue;
+                }
 
-                //AlgorithmsUtils.DebugRectInt(new RectInt(position.x, position.y, 1, 1), Color.red, waitTime, false, .1f);
+                GameObject wall = Instantiate(wallPrefabs[index], new Vector3(position.x + .5f, 0, position.y + .5f), Quaternion.identity, roomManager.wallParent);
+                roomManager.walls.Add(wall);
 
                 if (doAnimation) yield return new WaitForSeconds(waitTime);
-
-                if (mask == 0 || mask == 15) continue; // no walls needed
-
-                // choose wall prefab based on mask
-                if (wallPrefabs[mask] == null) continue; // no prefab for this configuration
-
-                Instantiate(wallPrefabs[mask], new Vector3(position.x + .5f, 0, position.y + .5f), Quaternion.identity, wallMap.Find((v) => v.Item1 == position).Item2);
             }
+
+            Transform doorParent = new GameObject("Doors").transform;
+            doorParent.transform.parent = roomManager.transform;
+            roomManager.doorParent = doorParent;
+
+            foreach (Door door in doors.Where(d => d.room1 == roomManager.rect || d.room2 == roomManager.rect))
+            {
+                GameObject doorHighlight = Instantiate(doorHighlightPrefab, doorParent);
+                doorHighlight.transform.localScale = new Vector3(door.rect.width, 1, door.rect.height);
+                doorHighlight.transform.position = new Vector3(door.rect.x + door.rect.width / 2f, 0, door.rect.y + door.rect.height / 2f);
+                roomManager.doors.Add(doorHighlight);
+            }
+
+            roomManager.Initialize();
         }
+
+        
+
+        foreach (RoomManager roomManager in roomManagers)
+            roomManager.neighbours = roomManagers.Where(rm => graph.GetNeighbors(roomManager.rect).Contains(rm.rect)).ToList();
     }
 
     // Complexity O(n) where n is the area of the entire dungeon
@@ -631,6 +637,12 @@ public class DungeonGenerator : MonoBehaviour
                 if(doAnimation) yield return new WaitForSeconds(waitTime);
             }
         }
+    }
+
+    void HideAllRooms()
+    {
+        foreach (RoomManager room in roomManagers)
+            room.HideAssets(true);
     }
 
     [HorizontalLine]
