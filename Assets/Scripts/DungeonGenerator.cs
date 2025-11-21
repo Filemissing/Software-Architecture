@@ -546,8 +546,6 @@ public class DungeonGenerator : MonoBehaviour
             roomManager.Initialize();
         }
 
-        
-
         foreach (RoomManager roomManager in roomManagers)
             roomManager.neighbours = roomManagers.Where(rm => graph.GetNeighbors(roomManager.rect).Contains(rm.rect)).ToList();
     }

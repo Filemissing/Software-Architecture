@@ -35,9 +35,11 @@ public class PlayerController : MonoBehaviour
         enabled = false;
     }
 
-    void Move(Vector3 position)
+    public void Move(Vector3 position)
     {
+        Debug.Log($"Moving to {position}");
         currentPath = FindShortestPath(position);
+        currentStep = 0;
     }
 
     private void FixedUpdate()

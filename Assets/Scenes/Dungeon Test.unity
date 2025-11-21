@@ -196,7 +196,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -308,13 +308,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 200039519}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.23670103, y: -0, z: -0, w: 0.9715826}
-  m_LocalPosition: {x: 0, y: 2.6, z: -4.3}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 5, z: -2.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 27.384, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &200039523
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -372,7 +372,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraController
   target: {x: 0, y: 0, z: 0}
-  offset: {x: 0, y: 1, z: -3}
+  offset: {x: 0, y: 4.5, z: -2.2}
   moveDuration: 0.1
 --- !u!1 &450091623
 GameObject:
@@ -384,7 +384,6 @@ GameObject:
   m_Component:
   - component: {fileID: 450091624}
   - component: {fileID: 450091625}
-  - component: {fileID: 450091626}
   m_Layer: 0
   m_Name: Dungeon Generator
   m_TagString: Untagged
@@ -489,38 +488,6 @@ MonoBehaviour:
   onRedraw:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &450091626
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 450091623}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshSurface
-  m_SerializedVersion: 0
-  m_AgentTypeID: 0
-  m_CollectObjects: 0
-  m_Size: {x: 10, y: 10, z: 10}
-  m_Center: {x: 0, y: 2, z: 0}
-  m_LayerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_UseGeometry: 0
-  m_DefaultArea: 0
-  m_GenerateLinks: 0
-  m_IgnoreNavMeshAgent: 1
-  m_IgnoreNavMeshObstacle: 1
-  m_OverrideTileSize: 0
-  m_TileSize: 256
-  m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.16666667
-  m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 7ffe31120c2d4ee4dabc8fe1eaf6a4ec, type: 2}
-  m_BuildHeightMesh: 0
 --- !u!1 &578763127
 GameObject:
   m_ObjectHideFlags: 0
@@ -806,7 +773,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6dc5bde386077f45b74492d610bd34c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  speed: 0.2
+  speed: 0.1
   walkableMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -927,6 +894,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1873225044}
   - component: {fileID: 1873225045}
+  - component: {fileID: 1873225046}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -963,6 +931,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   player: {fileID: 1357419485}
   cameraController: {fileID: 200039524}
+  currentRoom: {fileID: 0}
+--- !u!114 &1873225046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1873225043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc555e4087a787f48b163e3ff1d3e5d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  baseCardPrefab: {fileID: 5822059066744517022, guid: 68d103c17f0dc1349810d474a86630c8, type: 3}
+  movementCard: {fileID: 11400000, guid: 4786111991866b04ebd45e875af594be, type: 2}
 --- !u!1 &1874897316
 GameObject:
   m_ObjectHideFlags: 0
@@ -995,11 +978,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 80743024}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 50}
+  m_SizeDelta: {x: 0, y: 500}
+  m_Pivot: {x: 0.5, y: 0.1}
 --- !u!225 &1874897318
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -1024,8 +1007,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 646c3eebdf7cf6a44846464d3086c751, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  pivotPosition: {x: 0, y: 0, z: 0}
-  angleBetween: 0
+  cards: []
+  pivotPosition: {x: 0, y: -2000, z: 0}
+  angleBetween: -5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

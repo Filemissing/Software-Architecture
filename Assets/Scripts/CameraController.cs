@@ -11,6 +11,7 @@ public class CameraController : MonoBehaviour
     {
         if (target == null) return;
 
+        transform.DOLookAt(target, moveDuration).SetEase(Ease.InOutSine);
         transform.DOMove(target + offset, moveDuration).SetEase(Ease.InOutSine);
     }
 }

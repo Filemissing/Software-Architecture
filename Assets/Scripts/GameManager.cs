@@ -15,4 +15,5 @@ public class GameManager : MonoBehaviour
 
     public PlayerController player;
     public CameraController cameraController;
+    public RoomManager currentRoom;
 }

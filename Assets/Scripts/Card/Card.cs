@@ -3,15 +3,20 @@ using UnityEngine.EventSystems;
 
 public abstract class Card : ScriptableObject
 {
+    public Sprite background;
+    public Sprite descriptionBackground;
+    public Sprite titleBackground;
+
+    public Sprite art;
+
     public string title;
-    public Texture2D texture;
-    public Sprite backgroundSprite;
-    public Sprite borderSprite;
+    public string description;
 
-    public abstract void Play();
+    public abstract bool Play();
 
-    public virtual void OnHover() { }
-    public virtual void OnStartDrag() { }
-    public virtual void OnDrag() { }
-    public virtual void OnEndDrag() { }
+    public virtual void OnStartDrag(PointerEventData eventData, CardPresenter presenter) { }
+    public virtual void OnDrag(PointerEventData eventData, CardPresenter presenter) { }
+    public virtual void OnEndDrag(PointerEventData eventData, CardPresenter presenter) { }
+    public virtual void OnPointerEnter(PointerEventData eventData, CardPresenter presenter) { }
+    public virtual void OnPointerExit(PointerEventData eventData, CardPresenter presenter) { }
 }

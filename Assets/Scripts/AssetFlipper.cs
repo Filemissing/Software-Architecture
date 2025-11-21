@@ -17,7 +17,7 @@ public class AssetFlipper : MonoBehaviour
         if (isEnabled)
         {
             transform.DOKill();
-            transform.DORotate(flippedRotation, 1).SetEase(Ease.InOutSine);
+            transform.DORotate(flippedRotation, 1).SetEase(Ease.OutBack);
         }
     }
     public void HideInstant()
@@ -31,7 +31,7 @@ public class AssetFlipper : MonoBehaviour
         if (isEnabled)
         {
             transform.DOKill();
-            transform.DORotate(originalRotation, 1).SetEase(Ease.InOutSine);
+            transform.DORotate(originalRotation, 1).SetEase(Ease.OutBack);
         }
     }
     public void ShowInstant()
