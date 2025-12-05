@@ -16,10 +16,19 @@ public class MovementCard : Card
         return true;
     }
 
-    public override void OnDrag(PointerEventData eventData, CardPresenter presenter)
+    public override void OnDrag(PointerEventData eventData, CardPresenter presenter, bool isInPlayArea)
     {
-        base.OnDrag(eventData, presenter);
         exitOutline.SetActive(true);
+
+        // add border effect when in play area
+        if (isInPlayArea)
+        {
+            presenter.background.color = Color.yellow;
+        }
+        else
+        {
+            presenter.background.color = Color.white;
+        }
     }
     public override void OnEndDrag(PointerEventData eventData, CardPresenter presenter)
     {

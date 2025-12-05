@@ -16,6 +16,8 @@ public class PlayerController : MonoBehaviour
     int currentStep;
     Rigidbody rb;
 
+    [HideInInspector] public Vector3 moveDir;
+
     public void Enable()
     {
         rb = GetComponent<Rigidbody>();
@@ -37,17 +39,20 @@ public class PlayerController : MonoBehaviour
 
     public void Move(Vector3 position)
     {
-        Debug.Log($"Moving to {position}");
         currentPath = FindShortestPath(position);
         currentStep = 0;
     }
 
     private void FixedUpdate()
     {
-        if (currentPath == null || currentStep >= currentPath.Length) return;
+        if (currentPath == null || currentStep >= currentPath.Length)
+        {
+            moveDir = Vector3.zero;
+            return;
+        }
 
         Vector3 target = currentPath[currentStep] + Vector3.up * transform.position.y; // keep y position
-        Vector3 moveDir = (target - transform.position).normalized;
+        moveDir = (target - transform.position).normalized;
 
         if (Vector3.Distance(transform.position, target) < proximityMargin)
         {

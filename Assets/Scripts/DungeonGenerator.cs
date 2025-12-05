@@ -457,7 +457,9 @@ public class DungeonGenerator : MonoBehaviour
 
         Dictionary<RoomManager, List<Vector2>> perRoomFloorMap = new(); 
         Dictionary<Vector2, GameObject> globalFloorMap = new(); // contains spawned object by position in order to share references between different rooms
+        Dictionary<RoomManager, List<Vector2>> decorationMap = new();
 
+        //
         int roomIndex = 0;
         foreach (RectInt room in graph.GetNodes())
         {
@@ -474,7 +476,12 @@ public class DungeonGenerator : MonoBehaviour
             wallParent.parent = roomParent.transform;
             roomManager.wallParent = wallParent;
 
+            GameObject decorationParent = new GameObject("Decorations");
+            decorationParent.transform.parent = roomParent.transform;
+            roomManager.decorationParent = decorationParent.transform;
+
             perRoomFloorMap.Add(roomManager, new());
+            decorationMap.Add(roomManager, new());
             roomManagers.Add(roomManager);
 
             // Map Floors
@@ -483,7 +490,46 @@ public class DungeonGenerator : MonoBehaviour
                 perRoomFloorMap[roomManager].Add(new Vector2(position.x + .5f, position.y + .5f));
             }
 
+            // Map Decorations
+            List<Vector2Int> possiblePositions = new();
+            foreach (Vector2Int position in room.allPositionsWithin)
+            {
+                if (!(position.x == room.x || position.x == room.xMax - 1 || position.y == room.y || position.y == room.yMax - 1)) // wall positions, avoid spawning inside walls
+                {
+                    if (position.x == room.x + 1 || position.x == room.xMax - 2 || position.y == room.y + 1 || position.y == room.yMax - 2) // 1 away from walls
+                    {
+                        possiblePositions.Add(position);
+                    }
+                }
+            }
+
+            int decorationAmount = rng.NextInt(1, maxDecorationsPerRoom);
+
+            for (int i = 0; i < decorationAmount; i++)
+            {
+                int randomIndex = rng.NextInt(0, possiblePositions.Count);
+
+                decorationMap[roomManager].Add(possiblePositions[randomIndex]);
+
+                possiblePositions.RemoveAt(randomIndex);
+            }
+
             roomIndex++;
+        }
+
+        // clear door positions
+        foreach(RoomManager roomManager in roomManagers)
+        {
+            foreach (Door door in doors)
+            {
+                foreach (Vector2Int position in door.rect.allPositionsWithin)
+                {
+                    foreach (Vector2Int direction in orthogonalDirections)
+                    {
+                        if (decorationMap[roomManager].Contains(position + direction)) decorationMap[roomManager].Remove(position + direction);
+                    }
+                }
+            }
         }
 
         // spawn floors and walls
@@ -496,7 +542,7 @@ public class DungeonGenerator : MonoBehaviour
                 if (!globalFloorMap.ContainsKey(position)) // instantiate only non-duplicate floors
                     globalFloorMap.Add(position, Instantiate(floorPrefab, new Vector3(position.x, 0, position.y), Quaternion.identity, kvp.Key.floorParent));
 
-                roomManager.floors.Add(globalFloorMap[position]); // add reference to roomManager
+                roomManager.assetFlippers.Add(globalFloorMap[position].GetComponent<AssetFlipper>()); // add reference to roomManager
 
                 if(doAnimation) yield return new WaitForSeconds(waitTime);
             }
@@ -526,7 +572,7 @@ public class DungeonGenerator : MonoBehaviour
                 }
 
                 GameObject wall = Instantiate(wallPrefabs[index], new Vector3(position.x + .5f, 0, position.y + .5f), Quaternion.identity, roomManager.wallParent);
-                roomManager.walls.Add(wall);
+                roomManager.assetFlippers.Add(wall.GetComponent<AssetFlipper>());
 
                 if (doAnimation) yield return new WaitForSeconds(waitTime);
             }
@@ -544,6 +590,23 @@ public class DungeonGenerator : MonoBehaviour
             }
 
             roomManager.Initialize();
+        }
+
+        // spawn decorations
+        foreach (KeyValuePair<RoomManager, List<Vector2>> kvp in decorationMap)
+        {
+            foreach (Vector2 position in kvp.Value)
+            {
+                Vector3 adjustedPosition = new Vector3(position.x + .5f, 0, position.y + .5f);
+                Vector3 rotation = Vector3.up * rng.NextFloat(0, 360);
+
+                GameObject randomDecoration = decorationObjects[rng.NextInt(0, decorationObjects.Length)];
+                kvp.Key.decorations.Add(Instantiate(randomDecoration, adjustedPosition, Quaternion.Euler(rotation), kvp.Key.decorationParent));
+
+                spawnedDecorationPositions.Add(adjustedPosition);
+
+                if (doAnimation) yield return new WaitForSeconds(waitTime);
+            }
         }
 
         foreach (RoomManager roomManager in roomManagers)
@@ -645,7 +708,6 @@ public class DungeonGenerator : MonoBehaviour
 
     [HorizontalLine]
     [Header("Debugging")]
-    public Transform cursor;
     public bool showRooms;
     public bool showGraph;
     public bool showNavigationGraph;
@@ -663,11 +725,6 @@ public class DungeonGenerator : MonoBehaviour
 
         if (showDoors)
             DrawDoors();
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            Debug.Log(FindRoomAtPosition(cursor.position));
-        }
 
         if (showNavigationGraph)
         {

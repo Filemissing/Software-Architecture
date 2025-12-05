@@ -22,10 +22,8 @@ public class CardPresenter : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public TMP_Text title;
     public TMP_Text description;
 
-    Color originalBackgroundColor;
     private void Start()
     {
-        originalBackgroundColor = background.color;
         UpdateVisuals();
     }
 
@@ -62,19 +60,9 @@ public class CardPresenter : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         if (!isDragging) return;
         
-        card.OnDrag(eventData, this);
+        card.OnDrag(eventData, this, eventData.position.y / Screen.height >= ACTIVATION_HEIGHT_PERCENTAGE);
 
         transform.position = eventData.position;
-
-        // add border effect when in play area
-        if(eventData.position.y > Screen.height * ACTIVATION_HEIGHT_PERCENTAGE)
-        {
-            background.color = Color.white;
-        }
-        else
-        {
-            background.color = originalBackgroundColor;
-        }
     }
     public void OnEndDrag(PointerEventData eventData)
     {
@@ -101,5 +89,13 @@ public class CardPresenter : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public void OnPointerExit(PointerEventData eventData)
     {
         card.OnPointerExit(eventData, this);
+    }
+
+    // factory method
+    public static CardPresenter Create(Card card)
+    {
+        CardPresenter presenter = Instantiate(Cards.instance.baseCardPrefab);
+        presenter.card = card;
+        return presenter;
     }
 }

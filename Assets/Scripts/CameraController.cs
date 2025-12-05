@@ -3,15 +3,28 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public Vector3 target;
-    public Vector3 offset;
-    public float moveDuration;
+    [SerializeField] Vector3 target;
+    [SerializeField] Vector3 offset;
+    [SerializeField] float moveDuration;
+
+    [SerializeField] AnimationCurve XcursorInfluenceFalloff;
+    [SerializeField] AnimationCurve YcursorInfluenceFalloff;
 
     private void Update()
     {
         if (target == null) return;
 
-        transform.DOLookAt(target, moveDuration).SetEase(Ease.InOutSine);
+        Vector2 cursorUV = Input.mousePosition / new Vector2(Screen.width, Screen.height);
+
+        Vector3 lookDirection = target - transform.position;
+        lookDirection += transform.right * XcursorInfluenceFalloff.Evaluate(cursorUV.x);
+        lookDirection += transform.up * YcursorInfluenceFalloff.Evaluate(cursorUV.y);
+
+        Vector3 lookTarget = transform.position + lookDirection;
+
+        transform.DOLookAt(lookTarget, moveDuration).SetEase(Ease.InOutSine);
         transform.DOMove(target + offset, moveDuration).SetEase(Ease.InOutSine);
     }
+
+    public void SetTarget(Vector3 position) => target = position;
 }

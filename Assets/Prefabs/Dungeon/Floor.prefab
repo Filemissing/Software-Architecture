@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 6707e122f1bed924b982222fc37fb3c3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -102,6 +102,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68b975ed58dbc5542b4bc7e1093535d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProximityFlipper
+  originalRotation: {x: 0, y: 0, z: 0}
   flippedRotation: {x: -180, y: 0, z: 0}
 --- !u!1 &9115436605064137478
 GameObject:

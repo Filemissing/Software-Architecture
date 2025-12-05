@@ -8,35 +8,27 @@ public class RoomManager : MonoBehaviour
 
     [Header("Asset references")]
     public Transform wallParent;
-    public List<GameObject> walls = new();
-
     public Transform floorParent;
-    public List<GameObject> floors = new();
-
     public Transform doorParent;
-    public List<GameObject> doors = new();
+    public Transform decorationParent;
 
-    List<AssetFlipper> assetFlippers = new();
+    public List<GameObject> doors = new();
+    public List<GameObject> decorations = new();
+
+    public List<AssetFlipper> assetFlippers = new();
 
     [Header("Neighbours")]
     public List<RoomManager> neighbours = new();
 
+    [Header("Combat")]
+    public bool hasCombat;
+    public CombatEncounter encounter;
+
     // setup
     public void Initialize()
     {
-        AssignAssetFlippers();
         CreateTrigger();
         EventBus<RoomEnter>.onEvent += OnRoomEnter;
-    }
-    void AssignAssetFlippers()
-    {
-        assetFlippers.Clear();
-
-        foreach (GameObject wall in walls)
-            assetFlippers.AddRange(wall.GetComponentsInChildren<AssetFlipper>());
-
-        foreach (GameObject floor in floors)
-            assetFlippers.AddRange(floor.GetComponentsInChildren<AssetFlipper>());
     }
     void CreateTrigger()
     {
@@ -52,15 +44,26 @@ public class RoomManager : MonoBehaviour
         if (roomEnter.to == this)
         {
             ShowAssets();
-            GameManager.instance.cameraController.target = new Vector3(rect.center.x, 0, rect.center.y);
+
+            GameManager.instance.cameraController.SetTarget(new Vector3(rect.center.x, 0, rect.center.y));
             GameManager.instance.currentRoom = this;
+
             Cardbar.instance.Clear();
             for (int i = 0; i < doors.Count; i++)
             {
                 MovementCard cardInstance = MovementCard.Create(i, doors[i].transform.GetChild(0).gameObject);
-                CardPresenter card = Instantiate(Cards.instance.baseCardPrefab);
-                card.card = cardInstance;
+                CardPresenter card = CardPresenter.Create(cardInstance);
                 Cardbar.instance.AddCard(card);
+            }
+
+            if (decorations.Count > 0) 
+            {
+                int investigateCardCount = Random.Range(1, decorations.Count);
+                for (int i = 0; i < investigateCardCount; i++)
+                {
+                    CardPresenter card = CardPresenter.Create(Cards.instance.investigateCard);
+                    Cardbar.instance.AddCard(card);
+                }
             }
         }
         else if (roomEnter.from == this)
@@ -83,6 +86,9 @@ public class RoomManager : MonoBehaviour
                 flipper.ShowInstant();
             else
                 flipper.Show();
+
+        foreach (GameObject decoration in decorations) 
+            decoration.SetActive(true);
     }
     public void HideAssets(bool instant = false)
     {
@@ -91,6 +97,9 @@ public class RoomManager : MonoBehaviour
                 flipper.HideInstant();
             else
                 flipper.Hide();
+
+        foreach (GameObject decoration in decorations)
+            decoration.SetActive(false);
     }
     public void HideAssets(RoomManager overLappingRoom, bool instant = false)
     {
@@ -102,6 +111,9 @@ public class RoomManager : MonoBehaviour
                 flipper.HideInstant();
             else
                 flipper.Hide();
+
+        foreach (GameObject decoration in decorations)
+            decoration.SetActive(false);
     }
 }
 

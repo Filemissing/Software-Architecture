@@ -59,13 +59,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1767122401360803999}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.000000007450581, y: -0.000000007450581, z: -0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: 0.5000001, y: 0.49999994, z: -0.49999994, w: 0.50000006}
   m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 0.099999994, y: 1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8549911962388289363}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: -90}
 --- !u!33 &4268236876947242795
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -99,7 +99,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 6aef6a2e77189d940b790959d68e546c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -134,4 +134,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68b975ed58dbc5542b4bc7e1093535d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProximityFlipper
+  originalRotation: {x: 0, y: 0, z: 0}
   flippedRotation: {x: 0, y: -90, z: -90}

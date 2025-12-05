@@ -15,7 +15,7 @@ public abstract class Card : ScriptableObject
     public abstract bool Play();
 
     public virtual void OnStartDrag(PointerEventData eventData, CardPresenter presenter) { }
-    public virtual void OnDrag(PointerEventData eventData, CardPresenter presenter) { }
+    public virtual void OnDrag(PointerEventData eventData, CardPresenter presenter, bool isInPlayArea) { }
     public virtual void OnEndDrag(PointerEventData eventData, CardPresenter presenter) { }
     public virtual void OnPointerEnter(PointerEventData eventData, CardPresenter presenter) { }
     public virtual void OnPointerExit(PointerEventData eventData, CardPresenter presenter) { }

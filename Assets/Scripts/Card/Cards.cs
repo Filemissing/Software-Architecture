@@ -13,6 +13,7 @@ public class Cards : MonoBehaviour
         else
         {
             instance = this;
+            DontDestroyOnLoad(gameObject);
         }
     }
 
@@ -21,4 +22,5 @@ public class Cards : MonoBehaviour
 
     [Header("ScriptableObjects")]
     public MovementCard movementCard;
+    public InvestigateCard investigateCard;
 }
